@@ -42,7 +42,18 @@ html{font-size:16px}                                   /* 402px 이상 → 시�
 }
 *{-webkit-box-sizing:border-box;box-sizing:border-box}
 html,body{margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+/* ── 글자 자동 확대(font boosting) 차단 ──
+   카카오톡·라인 등 인앱 브라우저와 안드로이드 크롬은 본문 글자를 제멋대로 키운다.
+   박스는 그대로인데 글자만 1.5~2.3배로 커져 레이아웃이 깨지므로 두 겹으로 막는다.
+   1) text-size-adjust 를 100% 로 고정 (인앱 브라우저가 주입하는 값보다 우선하도록 !important)
+   2) max-height 를 지정하면 WebKit/Blink 의 TextAutosizer 가 해당 요소를 건너뛴다 */
+html,body{
+  -webkit-text-size-adjust:100% !important;
+  -moz-text-size-adjust:100% !important;
+  -ms-text-size-adjust:100% !important;
+  text-size-adjust:100% !important;
+}
+html,body,div,p,h1,span,label,input,button,i,em{max-height:1000000px}
 body{
   background:#fff;
   color:var(--ink);
@@ -102,6 +113,8 @@ h1{
   font-size:.6875rem;       /* 11 */
   line-height:1.8125rem;
   text-align:center;
+  white-space:nowrap;      /* 글자가 커져도 알약 밖으로 흘러내리지 않게 */
+  overflow:hidden;
   -webkit-transition:opacity .15s;transition:opacity .15s;
 }
 .chip:last-child{margin-right:0}
@@ -178,19 +191,32 @@ h1{
   background:#fff;
   -webkit-transition:background .12s,border-color .12s;transition:background .12s,border-color .12s;
 }
-.box:after{
-  content:"";position:absolute;
-  left:.28125rem;top:.09375rem;
-  width:.1875rem;height:.375rem;
-  border:solid #fff;border-width:0 .09375rem .09375rem 0;
-  -webkit-transform:rotate(45deg) scale(0);transform:rotate(45deg) scale(0);
-  -webkit-transition:-webkit-transform .12s;transition:transform .12s;
+/* 체크 표시는 SVG 로 직접 그린다 — 크기가 변해도 획 두께·비율이 유지된다 */
+.box svg{
+  position:absolute;left:0;top:0;
+  width:100%;height:100%;display:block;
+  fill:none;stroke:#fff;
+  stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;
+  opacity:0;
+  -webkit-transform:scale(.5);transform:scale(.5);
+  -webkit-transform-origin:50% 60%;transform-origin:50% 60%;
+  -webkit-transition:opacity .12s,-webkit-transform .16s cubic-bezier(.2,1.4,.5,1);
+  transition:opacity .12s,transform .16s cubic-bezier(.2,1.4,.5,1);
 }
 .rand input:checked + .box{background:var(--rose);border-color:var(--rose)}
-.rand input:checked + .box:after{-webkit-transform:rotate(45deg) scale(1);transform:rotate(45deg) scale(1)}
+.rand input:checked + .box svg{opacity:1;-webkit-transform:none;transform:none}
 
-/* ── 꽃 무대 (좌 19.5 / 폭 363 / 상 330) ── */
-.stage{position:relative;width:90.3%;margin:.8125rem 0 0 4.85%}
+/* ── 꽃 무대 (좌 19.5 / 폭 363 / 상 330) ──
+   장면 캔버스는 1200×1800 이지만 줄기 끝은 y=1703 에서 끝난다.
+   그 아래 빈 공간만큼 문서가 길어지지 않도록 바깥 상자로 잘라낸다.
+   1703 / 1200 × 90.3% = 128.16%  (프레임 폭 기준) */
+.stagewrap{
+  position:relative;width:100%;height:0;
+  padding-bottom:128.16%;
+  margin-top:.8125rem;
+  overflow:hidden;            /* 떨어진 꽃잎이 문서 높이를 늘리지 못하게 */
+}
+.stage{position:absolute;left:4.85%;top:0;width:90.3%}
 .ratio{position:relative;width:100%;height:0;padding-bottom:150%}   /* 1200 × 1800 */
 .inner{position:absolute;left:0;top:0;width:100%;height:100%}
 .inner img{position:absolute;display:block;-webkit-user-drag:none;-webkit-touch-callout:none}
@@ -260,7 +286,6 @@ h1{
 }
 .ok:active{background:#e9e9e9}
 
-.foot{height:1.5rem;height:calc(1.5rem + env(safe-area-inset-bottom))}
 
 @media (prefers-reduced-motion:reduce){
   .inner img.petal{-webkit-transition:opacity .4s;transition:opacity .4s}
@@ -288,14 +313,14 @@ h1{
       <button type="button" class="go" id="go">완료</button>
     </div>
 
-    <label class="rand"><input type="checkbox" id="shuffle" checked><span class="box"></span>시작 순서 랜덤</label>
+    <label class="rand"><input type="checkbox" id="shuffle" checked><span class="box"><svg viewBox="0 0 13 13" aria-hidden="true" focusable="false"><path d="M2.4 6.9 L5.0 9.5 L10.7 3.8"/></svg></span>시작 순서 랜덤</label>
   </div>
 
-  <div class="stage">
-    <div class="ratio"><div class="inner" id="scene"></div></div>
+  <div class="stagewrap">
+    <div class="stage">
+      <div class="ratio"><div class="inner" id="scene"></div></div>
+    </div>
   </div>
-
-  <div class="foot"></div>
 </div>
 
 <div class="overlay" id="overlay" role="dialog" aria-modal="true">
@@ -366,7 +391,7 @@ h1{
     var box = scene.offsetWidth || 320;
     var out  = box * (0.32 + Math.random() * 0.20);
     var side = box * (Math.random() - 0.5) * 0.34;
-    var down = box * (0.55 + Math.random() * 0.45);
+    var down = box * (0.30 + Math.random() * 0.30);   /* 무대 밖에서 잘리기 전에 사라지도록 */
     var spin = (Math.random() < 0.5 ? -1 : 1) * (130 + Math.random() * 220);
     var t = 'translate(' + (dx * out + side).toFixed(1) + 'px,' +
             (dy * out * 0.35 + down).toFixed(1) + 'px) rotate(' + spin.toFixed(0) + 'deg) scale(.88)';
@@ -429,7 +454,7 @@ h1{
   document.getElementById('go').addEventListener('click', function(){
     startsWithA = document.getElementById('shuffle').checked ? (Math.random() < 0.5) : true;
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-    var top = document.querySelector('.stage').getBoundingClientRect().top + (window.pageYOffset || 0) - 10;
+    var top = document.querySelector('.stagewrap').getBoundingClientRect().top + (window.pageYOffset || 0) - 10;
     try { window.scrollTo({ top: top, behavior: 'smooth' }); }
     catch (err) { window.scrollTo(0, top); }
   }, false);
