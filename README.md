@@ -16,41 +16,6 @@
 
 빌드 과정이 없습니다. 파일을 더블클릭해서 열어도 그대로 동작합니다.
 
-## 시안 대응
-
-Figma 프레임 **402 × 874** 기준으로 만들었습니다.
-`html { font-size }` 를 뷰포트 폭에 연동하고 모든 치수를 `rem` 으로 써서,
-어떤 기기에서도 시안 비율이 그대로 유지됩니다.
-
-```css
-html{ font-size:16px }                                    /* 402px 이상 → 시안 1:1 */
-@media (max-width:401.98px){ html{ font-size:3.9801vw } } /* 16 / 402 × 100vw */
-```
-
-402px 뷰포트에서 실측한 값이 시안과 일치합니다.
-
-| 요소 | 시안 (left, top, w×h) | 실측 |
-|---|---|---|
-| 타이틀 | 28, 44 · 333×48 | 28, 44 · 333×48 |
-| 서브카피 | 28, 107 | 28, 107 |
-| 상황 칩 | 28, 137 · 83×29 | 28, 137 · 83×29 |
-| 고민 입력 | 28, 183 · 333×40 | 28, 183 · 333×40 |
-| 대답 라벨 | 28, 235 | 28, 235 |
-| 대답 입력 / 완료 | 252 · 완료 302, 59×40 | 252 · 완료 302, 59×40 |
-| 시작 순서 랜덤 | 304 · 13×13 | 304 · 13×13 |
-| 꽃 | top 330 | top 330 |
-
-색상도 시안 값 그대로입니다 — `#303030` `#666666` `#3F6A2E` `rgba(63,106,46,.12)`
-`#7F0512` `#F8F8F8` `#FDFDFD` `#F3F3F3` `#969696` `#AEAEAE` `#818181` `#3C3C3C` `#B83956` `#646464`,
-자간 `0.02em`.
-
-### 글꼴
-
-`font-family: 'Inter', 'Pretendard Variable', Pretendard, …`
-
-Inter 에는 한글 글리프가 없어서 한글은 반드시 대체 글꼴로 넘어갑니다.
-Inter 와 가장 비슷한 Pretendard 를 뒤에 두어, 영문·숫자는 Inter / 한글은 Pretendard 로
-한 벌처럼 보이게 맞췄습니다. 둘 다 CDN 에서 불러오고, 실패해도 시스템 글꼴로 안전하게 떨어집니다.
 
 ## 동작
 
@@ -65,52 +30,7 @@ Inter 와 가장 비슷한 Pretendard 를 뒤에 두어, 영문·숫자는 Inter
 **시작 순서 랜덤**을 켜두면 첫 꽃잎의 대답이 매번 무작위로 정해집니다.
 꽃잎이 16장(짝수)이라 이 옵션이 꺼져 있으면 결과가 항상 두 번째 대답으로 고정됩니다.
 
-## 호환성
 
-* `aspect-ratio` · `gap` · `backdrop-filter` · `inset` · `clamp()` · `:is()` **미사용**
-  — 비율 유지는 `padding-bottom:150%`, 정렬은 `-webkit-` 접두사를 붙인 flexbox
-* JS는 옵셔널 체이닝 · `??` 등 최신 문법 미사용, `fetch` 없이 레이어 좌표를 인라인 처리
-* `env(safe-area-inset-*)` 노치 대응, `prefers-reduced-motion` 대응
-* 320 / 375 / 402 / 412 / 1280px 에서 렌더 테스트 완료 — 가로 스크롤 없음, JS 오류 없음
-* 시안의 입력 글자 크기가 13px 이라 iOS 에서 입력칸을 탭할 때 화면이 살짝 확대될 수 있습니다.
-  (`maximum-scale=1` 로 대부분 막히지만 iOS 버전에 따라 다릅니다. 완전히 막으려면 입력 글자를 16px 로 올려야 합니다.)
-
-## GitHub Pages 배포
-
-```bash
-git init
-git add .
-git commit -m "flower fortune"
-git branch -M main
-git remote add origin https://github.com/<사용자명>/<저장소명>.git
-git push -u origin main
-```
-
-저장소 → **Settings → Pages → Source: Deploy from a branch → main / (root)**
-
-## 커스터마이징
-
-| 무엇 | 위치 |
-|---|---|
-| 결과 문구 | `var MSG_A` / `var MSG_B` |
-| 색상 | `:root` 의 CSS 변수 |
-| 꽃잎 떨어지는 거리·회전 | `pluck()` 안의 `out` / `side` / `down` / `spin` |
-| 떨어지는 속도 | `.inner img.petal` 의 `transition` (기본 1.75s) |
-| 대답 문구 크기·농도 | `.say` 의 `font-size` 와 `@keyframes say` 의 `opacity` |
-
-### 레이어 데이터
-
-`index.html` 안 `var DATA = {...}` 에 19개 레이어의 배치가 들어 있습니다.
-좌표계는 원본 사진과 같은 **1200 × 1800**.
-
-* `x, y, w, h` — 장면 좌표계에서의 위치와 크기
-* `ox, oy` — 꽃잎 이미지 안에서 꽃 중심(회전축)의 위치 (%)
-* `a` — 꽃잎이 향한 각도. 시계 방향, `0° = 위`. 바깥 방향 벡터는 `(sin a, −cos a)`
-* 겹치는 순서: `background → flowerA 꽃잎 → flowerA 화심 → flowerB 꽃잎 → flowerB 화심`
-
-모든 레이어를 순서대로 겹치면 원본 사진이 그대로 복원됩니다 (평균 색 오차 0.19/255).
-꽃잎을 다 떼어도 화심이 떠 보이지 않도록, 꽃잎에 가려져 있던 줄기 구간을
-사진에서 뽑은 색으로 이어 그려 배경 레이어에 넣어 두었습니다.
 
 ## 라이선스
 
