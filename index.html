@@ -23,8 +23,8 @@
    어떤 기기에서도 시안 비율 그대로 스케일된다.
    구형 호환: aspect-ratio / gap / backdrop-filter / inset / clamp 미사용.
    ══════════════════════════════════════════════════ */
-html{font-size:17.6px}                                 /* 시안 402px 기준 ×1.10 */
-@media (max-width:401.98px){ html{font-size:4.3781vw} } /* 17.6 / 402 * 100vw */
+html{font-size:20px}                                   /* 시안 402px 기준 ×1.25 */
+@media (max-width:401.98px){ html{font-size:4.9751vw} } /* 20 / 402 * 100vw */
 
 :root{
   --ink:#303030;
@@ -70,7 +70,7 @@ button,input{font-family:inherit;color:inherit;letter-spacing:.02em}
 button{-webkit-appearance:none;appearance:none;border:0;background:none;cursor:pointer}
 
 .frame{position:relative;width:100%;max-width:25.125rem;margin:0 auto}  /* 402px */
-.wrap{padding:2.75rem 2.5625rem 0 1.75rem}                              /* 44 / 41 / 28 */
+.wrap{padding:2.75rem 10.199% 0 6.965%}   /* 28 / 41 을 프레임 폭 비율로 — 글자만 커져도 안 넘침 */
 
 /* ── 타이틀 ── */
 h1{
@@ -106,9 +106,9 @@ h1{
 .chips{margin:.875rem 0 0;font-size:0}    /* 137 */
 .chip{
   display:inline-block;
-  width:5.1875rem;          /* 83 */
+  padding:0 .5em;           /* 글자에 맞춰 알약 폭이 늘어남 */
   height:1.8125rem;         /* 29 */
-  margin-right:1rem;        /* 16 */
+  margin-right:2%;
   border-radius:999px;
   background:var(--green-bg);
   color:var(--green);
@@ -146,8 +146,8 @@ h1{
 .labels{margin-top:.75rem;font-size:0}                        /* 235 */
 .labels span{
   display:inline-block;
-  width:7.75rem;            /* 124 */
-  margin-right:.8125rem;    /* 13 */
+  width:37.238%;            /* 124 / 333 */
+  margin-right:3.904%;      /* 13 / 333 */
   font-size:.625rem;        /* 10 */
   line-height:1.2;          /* 12 */
   color:var(--label);
@@ -157,11 +157,11 @@ h1{
   margin-top:.3125rem;      /* 252 */
 }
 .row .cell{-webkit-box-flex:1;-ms-flex:1 1 0;-webkit-flex:1 1 0;flex:1 1 0;min-width:0}
-.row .cell + .cell{margin-left:.8125rem}
+.row .cell + .cell{margin-left:3.904%}
 .go{
   -webkit-flex:0 0 auto;-ms-flex:0 0 auto;flex:0 0 auto;
-  margin-left:.8125rem;
-  width:3.6875rem;          /* 59 */
+  margin-left:3.904%;
+  width:17.718%;            /* 59 / 333 */
   height:2.5rem;            /* 40 */
   border-radius:999px;
   background:var(--dark);
